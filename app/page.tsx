@@ -57,16 +57,16 @@ export default function Home() {
 		console.log("circleX", circleX, "circleY", circleY)
 		switch (direction) {
 			case "up":
-				setCircleY(circleY => (circleY !== 0 ? Math.abs(circleY - 1) : 16))
+				setCircleY(y => (y > 0 ? y - 1 : 16))
 				break
 			case "down":
-				setCircleY(circleY => circleY + 1)
+				setCircleY(y => (y + 1) % 17)
 				break
 			case "left":
-				setCircleX(circleX => (circleX !== 0 ? Math.abs(circleX - 1) : 28))
+				setCircleX(x => (x > 0 ? x - 1 : 28))
 				break
 			case "right":
-				setCircleX(circleX => circleX + 1)
+				setCircleX(x => (x + 1) % 29)
 				break
 		}
 	}

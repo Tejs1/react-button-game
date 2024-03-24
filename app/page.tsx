@@ -1,5 +1,5 @@
 "use client"
-import { ReactEventHandler, useEffect, useState } from "react"
+import { ReactEventHandler, useEffect, useState, useRef } from "react"
 import Image from "next/image"
 import {
 	ChevronRightIcon,
@@ -16,7 +16,7 @@ export default function Home() {
 	const [activeButton, setActiveButton] = useState("")
 
 	useEffect(() => {
-		const handleKeyDown = e => {
+		const handleKeyDown = (e: { key: string }) => {
 			switch (e.key) {
 				case "w":
 				case "ArrowUp":
@@ -70,6 +70,7 @@ export default function Home() {
 								direction={dir}
 								active={activeButton === dir}
 								handleActions={handleActions}
+								setActiveButton={setActiveButton}
 							/>
 						))}
 					</div>
@@ -93,12 +94,33 @@ export function ButtonIcon({
 	active,
 	handleActions,
 	className,
+	setActiveButton,
 }: {
 	direction: Direction
 	active?: boolean
 	handleActions: Function
 	className?: string
+	setActiveButton: React.Dispatch<React.SetStateAction<string>>
 }) {
+	const actionIntervalRef = useRef<NodeJS.Timeout | null>(null)
+
+	const startAction = () => {
+		handleActions(direction)
+		if (!actionIntervalRef.current) {
+			actionIntervalRef.current = setInterval(() => {
+				handleActions(direction)
+			}, 100) // Adjust the interval as needed
+		}
+	}
+
+	const stopAction = () => {
+		if (actionIntervalRef.current) {
+			setActiveButton("")
+			clearInterval(actionIntervalRef.current)
+			actionIntervalRef.current = null
+		}
+	}
+
 	let Icon = ChevronRightIcon
 	let position = ""
 	switch (direction) {
@@ -125,6 +147,9 @@ export function ButtonIcon({
 			variant="outline"
 			size="icon"
 			className={`${position} ${active ? "bg-blue-500" : ""} ${className}`}
+			onMouseDown={startAction}
+			onMouseUp={stopAction}
+			onMouseLeave={stopAction}
 			onClick={() => handleActions(direction)}
 		>
 			<Icon className="h-4 w-4" />

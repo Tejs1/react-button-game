@@ -279,7 +279,7 @@ export default function Home() {
 	)
 }
 
-export function ButtonIcon({
+function ButtonIcon({
 	direction,
 	active,
 	handleActions,

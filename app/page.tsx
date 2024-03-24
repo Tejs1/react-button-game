@@ -23,7 +23,7 @@ export default function Home() {
 
 	useEffect(() => {
 		const randomX = Math.abs(Math.floor(Math.random() * 78 - 15) + 1) // Generates a number between 1 and 78
-		const randomY = Math.floor(Math.random() * 58 - 15) + 1 // Generates a number between 1 and 58
+		const randomY = Math.floor(Math.random() * 18 - 15) + 1 // Generates a number between 1 and 18
 		// setTarget({ x: randomX, y: randomY })
 		const handleKeyDown = (e: { key: string }) => {
 			const directionKeyMap: { [key: string]: Direction } = {
@@ -74,10 +74,10 @@ export default function Home() {
 
 				switch (direction) {
 					case "up":
-						newY = newY !== 1 ? newY - 1 : 58
+						newY = newY !== 1 ? newY - 1 : 18
 						break
 					case "down":
-						newY = (newY + 1) % 58
+						newY = (newY + 1) % 18
 						break
 					case "left":
 						newX = newX !== 1 ? newX - 1 : 78
@@ -99,10 +99,10 @@ export default function Home() {
 
 				switch (direction) {
 					case "up":
-						newY = newY !== 1 ? newY - 1 : 58
+						newY = newY !== 1 ? newY - 1 : 18
 						break
 					case "down":
-						newY = (newY + 1) % 58
+						newY = (newY + 1) % 18
 						break
 					case "left":
 						newX = newX !== 1 ? newX - 1 : 78
@@ -124,10 +124,10 @@ export default function Home() {
 
 				switch (direction) {
 					case "up":
-						newY = newY !== 1 ? newY - 1 : 58
+						newY = newY !== 1 ? newY - 1 : 18
 						break
 					case "down":
-						newY = (newY + 1) % 58
+						newY = (newY + 1) % 18
 						break
 					case "left":
 						newX = newX !== 1 ? newX - 1 : 78
@@ -163,7 +163,7 @@ export default function Home() {
 			<div className="game">
 				<div className="game-board">
 					<div className="board">
-						<div className="grid grid-cols-80 grid-rows-40  bg-slate-300 rounded-lg ">
+						<div className="grid grid-cols-80 grid-rows-20  bg-slate-300 rounded-lg ">
 							<div
 								key={0}
 								className="canvas bg-blue-200 h-[150px] w-[150px] rounded-lg transition-transform duration-300 ease-in-out transform "

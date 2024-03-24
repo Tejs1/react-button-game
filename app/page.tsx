@@ -14,10 +14,17 @@ type Direction = (typeof directions)[number]
 
 export default function Home() {
 	const [activeButton, setActiveButton] = useState("")
-	const [circle, setCircle] = useState({ x: 1, y: 1 })
-	const [target, setTarget] = useState({ x: 0, y: 0 })
+	const [circle1, setCircle1] = useState({ x: 1, y: 1 })
+	const [circle2, setCircle2] = useState({ x: 1, y: 1 })
+	const [circle3, setCircle3] = useState({ x: 1, y: 1 })
+	const [target, setTarget] = useState({ x: 30, y: 4 })
+	const [target2, setTarget2] = useState({ x: 30, y: 4 })
+	const [target3, setTarget3] = useState({ x: 0, y: 0 })
 
 	useEffect(() => {
+		const randomX = Math.abs(Math.floor(Math.random() * 78 - 15) + 1) // Generates a number between 1 and 78
+		const randomY = Math.floor(Math.random() * 58 - 15) + 1 // Generates a number between 1 and 58
+		// setTarget({ x: randomX, y: randomY })
 		const handleKeyDown = (e: { key: string }) => {
 			const directionKeyMap: { [key: string]: Direction } = {
 				w: "up",
@@ -29,6 +36,7 @@ export default function Home() {
 				d: "right",
 				ArrowRight: "right",
 			}
+
 			const direction = directionKeyMap[e.key]
 			if (direction) {
 				setActiveButton(direction)
@@ -49,47 +57,196 @@ export default function Home() {
 		}
 	}, [])
 	useEffect(() => {
-		console.log("circle.x", circle.x, "circle.y", circle.y)
-	}, [circle.x, circle.y])
+		console.log("circle", isCircleInTarget(circle1, target, 15, 15))
+	}, [circle1.x, circle1.y, target])
+	useEffect(() => {
+		console.log("circle", isCircleInTarget(circle2, target, 15, 15))
+	}, [circle2.x, circle2.y, target])
 
-	const handleActions = (direction: Direction) => {
-		setCircle(prevPosition => {
-			let newX = prevPosition.x
-			let newY = prevPosition.y
+	const handleActions = (
+		direction: Direction,
+		circle: "circle1" | "circle2" | "circle3",
+	) => {
+		if (circle === "circle1") {
+			setCircle1(prevPosition => {
+				let newX = prevPosition.x
+				let newY = prevPosition.y
 
-			switch (direction) {
-				case "up":
-					newY = newY !== 1 ? newY - 1 : 58
-					break
-				case "down":
-					newY = (newY + 1) % 58
-					break
-				case "left":
-					newX = newX !== 1 ? newX - 1 : 78
-					break
-				case "right":
-					newX = (newX + 1) % 78
-					break
-				default:
-					break
-			}
+				switch (direction) {
+					case "up":
+						newY = newY !== 1 ? newY - 1 : 58
+						break
+					case "down":
+						newY = (newY + 1) % 58
+						break
+					case "left":
+						newX = newX !== 1 ? newX - 1 : 78
+						break
+					case "right":
+						newX = (newX + 1) % 78
+						break
+					default:
+						break
+				}
 
-			return { x: newX, y: newY }
-		})
+				return { x: newX, y: newY }
+			})
+		}
+		if (circle === "circle2") {
+			setCircle2(prevPosition => {
+				let newX = prevPosition.x
+				let newY = prevPosition.y
+
+				switch (direction) {
+					case "up":
+						newY = newY !== 1 ? newY - 1 : 58
+						break
+					case "down":
+						newY = (newY + 1) % 58
+						break
+					case "left":
+						newX = newX !== 1 ? newX - 1 : 78
+						break
+					case "right":
+						newX = (newX + 1) % 78
+						break
+					default:
+						break
+				}
+
+				return { x: newX, y: newY }
+			})
+		}
+		if (circle === "circle3") {
+			setCircle3(prevPosition => {
+				let newX = prevPosition.x
+				let newY = prevPosition.y
+
+				switch (direction) {
+					case "up":
+						newY = newY !== 1 ? newY - 1 : 58
+						break
+					case "down":
+						newY = (newY + 1) % 58
+						break
+					case "left":
+						newX = newX !== 1 ? newX - 1 : 78
+						break
+					case "right":
+						newX = (newX + 1) % 78
+						break
+					default:
+						break
+				}
+
+				return { x: newX, y: newY }
+			})
+		}
 	}
+	const isCircleInTarget = (
+		circle: { x: number; y: number },
+		target: { x: number; y: number },
+		targetWidth: number,
+		targetHeight: number,
+	) => {
+		// Check if the circle is within the horizontal bounds of the target box
+		const overlapsHorizontally =
+			circle.x >= target.x && circle.x <= target.x + targetWidth
+		// Check if the circle is within the vertical bounds of the target box
+		const overlapsVertically =
+			circle.y >= target.y && circle.y <= target.y + targetHeight
 
+		return overlapsHorizontally && overlapsVertically
+	}
 	return (
 		<main className="flex min-h-screen flex-col items-center justify-between p-24">
 			<div className="game">
 				<div className="game-board">
 					<div className="board">
-						<div className="grid grid-cols-80 grid-rows-60  bg-slate-300 rounded-lg ">
+						<div className="grid grid-cols-80 grid-rows-40  bg-slate-300 rounded-lg ">
+							<div
+								key={0}
+								className="canvas bg-blue-200 h-[150px] w-[150px] rounded-lg transition-transform duration-300 ease-in-out transform "
+								style={{
+									gridArea: `${target3.y} / ${target3.x} / ${target3.y + 1} / ${
+										target3.x + 1
+									}`,
+								}}
+							></div>
 							<div
 								key={1}
-								className=" bg-red-400 h-[25px] w-[25px] rounded-full transition-transform duration-300 ease-in-out transform hover:scale-110"
+								className="canvas bg-red-400 h-[25px] w-[25px] rounded-full transition-transform duration-300 ease-in-out transform "
 								style={{
-									gridArea: `${circle.y} / ${circle.x} / ${circle.y + 1} / ${
-										circle.x + 1
+									gridArea: `${circle3.y} / ${circle3.x} / ${circle3.y + 1} / ${
+										circle3.x + 1
+									}`,
+								}}
+							></div>
+						</div>
+
+						<div className="grid grid-cols-80 grid-rows-20  bg-red-300 rounded-lg ">
+							<div
+								key={0}
+								className="canvas bg-blue-200 h-[150px] w-[150px] rounded-lg transition-transform duration-300 ease-in-out transform "
+								style={{
+									gridArea: `${target2.y} / ${target2.x} / ${target2.y + 1} / ${
+										target2.x + 1
+									}`,
+								}}
+							>
+								<div className="grid grid-rows-2 grid-cols-3 gap-2 w-max">
+									{directions.map(dir => (
+										<ButtonIcon
+											key={dir}
+											direction={dir}
+											active={activeButton === dir}
+											handleActions={handleActions}
+											setActiveButton={setActiveButton}
+											circle="circle3"
+										/>
+									))}
+								</div>
+							</div>
+							<div
+								key={1}
+								className="canvas bg-red-400 h-[25px] w-[25px] rounded-full transition-transform duration-300 ease-in-out transform "
+								style={{
+									gridArea: `${circle2.y} / ${circle2.x} / ${circle2.y + 1} / ${
+										circle2.x + 1
+									}`,
+								}}
+							></div>
+						</div>
+
+						<div className="grid grid-cols-80 grid-rows-20  bg-slate-300 rounded-lg ">
+							<div
+								key={0}
+								className="canvas bg-blue-200 h-[150px] w-[150px] rounded-lg transition-transform duration-300 ease-in-out transform "
+								style={{
+									gridArea: `${target.y} / ${target.x} / ${target.y + 1} / ${
+										target.x + 1
+									}`,
+								}}
+							>
+								<div className="grid grid-rows-2 grid-cols-3 gap-2 w-max">
+									{directions.map(dir => (
+										<ButtonIcon
+											key={dir}
+											direction={dir}
+											active={activeButton === dir}
+											handleActions={handleActions}
+											setActiveButton={setActiveButton}
+											circle="circle2"
+										/>
+									))}
+								</div>
+							</div>
+							<div
+								key={1}
+								className="canvas bg-red-400 h-[25px] w-[25px] rounded-full transition-transform duration-300 ease-in-out transform "
+								style={{
+									gridArea: `${circle1.y} / ${circle1.x} / ${circle1.y + 1} / ${
+										circle1.x + 1
 									}`,
 								}}
 							></div>
@@ -103,6 +260,7 @@ export default function Home() {
 								active={activeButton === dir}
 								handleActions={handleActions}
 								setActiveButton={setActiveButton}
+								circle="circle1"
 							/>
 						))}
 					</div>
@@ -127,12 +285,14 @@ export function ButtonIcon({
 	handleActions,
 	className,
 	setActiveButton,
+	circle,
 }: {
 	direction: Direction
 	active?: boolean
 	handleActions: Function
 	className?: string
 	setActiveButton: React.Dispatch<React.SetStateAction<string>>
+	circle: "circle1" | "circle2" | "circle3"
 }) {
 	const actionIntervalRef = useRef<NodeJS.Timeout | null>(null)
 	useEffect(() => {
@@ -146,10 +306,10 @@ export function ButtonIcon({
 	}, [])
 
 	const startAction = () => {
-		handleActions(direction)
+		handleActions(direction, circle)
 		if (!actionIntervalRef.current) {
 			actionIntervalRef.current = setInterval(() => {
-				handleActions(direction)
+				handleActions(direction, circle)
 			}, 100) // Adjust the interval as needed
 		}
 	}

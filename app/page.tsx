@@ -7,6 +7,7 @@ import {
 	Dispatch,
 	SetStateAction,
 	useCallback,
+	MutableRefObject,
 } from "react"
 import Image from "next/image"
 import {
@@ -42,12 +43,14 @@ export default function Home() {
 		(
 			direction: Direction,
 			circle: Circles,
-			actionIntervalRef = button1targetIntervalRef,
+			actionIntervalRef: MutableRefObject<NodeJS.Timeout | null>,
 		) => {
 			if (!actionIntervalRef.current) {
 				actionIntervalRef.current = setInterval(() => {
 					handleActions(direction, circle)
 				}, 100) // Adjust the interval as needed
+				console.log("starting")
+				console.log(actionIntervalRef.current)
 			}
 		},
 		[],
@@ -55,7 +58,9 @@ export default function Home() {
 	const stopAction = (actionIntervalRef: {
 		current: NodeJS.Timeout | null
 	}) => {
+		console.log("stopping")
 		if (actionIntervalRef.current) {
+			console.log("stopping 2")
 			setActiveButton("")
 			clearInterval(actionIntervalRef.current)
 			actionIntervalRef.current = null
@@ -96,25 +101,19 @@ export default function Home() {
 			window.removeEventListener("keyup", handleKeyUp)
 		}
 	}, [])
+
 	useEffect(() => {
-		console.log("circle", isCircleInTarget(circle1, target2, 15, 15))
-		console.log(circle1)
 		if (isCircleInTarget(circle1, target2, 15, 15)) {
 			if (circle1.x === 36 && circle1.y === 8) {
 				startAction("down", "circle2", button1target2IntervalRef)
 				console.log("moved circle1")
 			} else {
-				console.log("not moved")
-				stopAction(button1targetIntervalRef)
+				stopAction(button1target2IntervalRef)
 			}
-			stopAction(button1targetIntervalRef)
 		}
-		stopAction(button1targetIntervalRef)
 	}, [circle1, circle1.x, circle1.y, startAction, target2])
 
-	useEffect(() => {
-		console.log("circle", isCircleInTarget(circle2, target, 15, 15))
-	}, [circle2, circle2.x, circle2.y, target])
+	useEffect(() => {}, [circle2, circle2.x, circle2.y, target])
 
 	const handleActions = (direction: Direction, circle: Circles) => {
 		const setCircle = {

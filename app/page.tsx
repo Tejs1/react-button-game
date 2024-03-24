@@ -40,7 +40,7 @@ export default function Home() {
 			const direction = directionKeyMap[e.key]
 			if (direction) {
 				setActiveButton(direction)
-				handleActions(direction, circle1)
+				handleActions(direction, "circle1")
 			}
 		}
 
@@ -58,10 +58,10 @@ export default function Home() {
 	}, [])
 	useEffect(() => {
 		console.log("circle", isCircleInTarget(circle1, target, 15, 15))
-	}, [circle1.x, circle1.y, target])
+	}, [circle1, circle1.x, circle1.y, target])
 	useEffect(() => {
 		console.log("circle", isCircleInTarget(circle2, target, 15, 15))
-	}, [circle2.x, circle2.y, target])
+	}, [circle2, circle2.x, circle2.y, target])
 
 	const handleActions = (
 		direction: Direction,

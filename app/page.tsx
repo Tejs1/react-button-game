@@ -1,5 +1,13 @@
 "use client"
-import { ReactEventHandler, useEffect, useState, useRef } from "react"
+import {
+	ReactEventHandler,
+	useEffect,
+	useState,
+	useRef,
+	Dispatch,
+	SetStateAction,
+	useCallback,
+} from "react"
 import Image from "next/image"
 import {
 	ChevronRightIcon,
@@ -10,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Dir } from "fs"
 const directions = ["up", "left", "down", "right"] as const
+type Circles = "circle1" | "circle2" | "circle3"
 type Direction = (typeof directions)[number]
 
 export default function Home() {
@@ -20,7 +29,38 @@ export default function Home() {
 	const [target, setTarget] = useState({ x: 30, y: 4 })
 	const [target2, setTarget2] = useState({ x: 30, y: 4 })
 	const [target3, setTarget3] = useState({ x: 50, y: 2 })
+	const button1targetIntervalRef = useRef<NodeJS.Timeout | null>(null)
+	const button2targetIntervalRef = useRef<NodeJS.Timeout | null>(null)
+	const button3targetIntervalRef = useRef<NodeJS.Timeout | null>(null)
+	const button4targetIntervalRef = useRef<NodeJS.Timeout | null>(null)
+	const button1target2IntervalRef = useRef<NodeJS.Timeout | null>(null)
+	const button2target2IntervalRef = useRef<NodeJS.Timeout | null>(null)
+	const button3target2IntervalRef = useRef<NodeJS.Timeout | null>(null)
+	const button4target2IntervalRef = useRef<NodeJS.Timeout | null>(null)
 
+	const startAction = useCallback(
+		(
+			direction: Direction,
+			circle: Circles,
+			actionIntervalRef = button1targetIntervalRef,
+		) => {
+			if (!actionIntervalRef.current) {
+				actionIntervalRef.current = setInterval(() => {
+					handleActions(direction, circle)
+				}, 100) // Adjust the interval as needed
+			}
+		},
+		[],
+	)
+	const stopAction = (actionIntervalRef: {
+		current: NodeJS.Timeout | null
+	}) => {
+		if (actionIntervalRef.current) {
+			setActiveButton("")
+			clearInterval(actionIntervalRef.current)
+			actionIntervalRef.current = null
+		}
+	}
 	useEffect(() => {
 		const randomX = Math.abs(Math.floor(Math.random() * 78 - 15) + 1) // Generates a number between 1 and 78
 		const randomY = Math.floor(Math.random() * 18 - 15) + 1 // Generates a number between 1 and 18
@@ -58,15 +98,25 @@ export default function Home() {
 	}, [])
 	useEffect(() => {
 		console.log("circle", isCircleInTarget(circle1, target2, 15, 15))
-	}, [circle1, circle1.x, circle1.y, target2])
+		console.log(circle1)
+		if (isCircleInTarget(circle1, target2, 15, 15)) {
+			if (circle1.x === 36 && circle1.y === 8) {
+				startAction("down", "circle2", button1target2IntervalRef)
+				console.log("moved circle1")
+			} else {
+				console.log("not moved")
+				stopAction(button1targetIntervalRef)
+			}
+			stopAction(button1targetIntervalRef)
+		}
+		stopAction(button1targetIntervalRef)
+	}, [circle1, circle1.x, circle1.y, startAction, target2])
+
 	useEffect(() => {
 		console.log("circle", isCircleInTarget(circle2, target, 15, 15))
 	}, [circle2, circle2.x, circle2.y, target])
 
-	const handleActions = (
-		direction: Direction,
-		circle: "circle1" | "circle2" | "circle3",
-	) => {
+	const handleActions = (direction: Direction, circle: Circles) => {
 		if (circle === "circle1") {
 			setCircle1(prevPosition => {
 				let newX = prevPosition.x
@@ -159,121 +209,41 @@ export default function Home() {
 		return overlapsHorizontally && overlapsVertically
 	}
 	return (
-		<main className="flex min-h-screen flex-col items-center justify-between p-24">
+		<main className="flex min-h-screen flex-col items-center justify-center m-auto">
 			<div className="game">
 				<div className="game-board flex items-center flex-col gap-4	">
-					<div className="board">
-						<div className="grid grid-cols-80 grid-rows-20  bg-slate-300 rounded-lg ">
-							<div
-								key={0}
-								className="canvas bg-blue-200 h-[150px] w-[150px] rounded-lg transition-transform duration-300 ease-in-out transform "
-								style={{
-									gridArea: `${target3.y} / ${target3.x} / ${target3.y + 1} / ${
-										target3.x + 1
-									}`,
-								}}
-							></div>
-							<div
-								key={1}
-								className="canvas bg-red-400 h-[25px] w-[25px] rounded-full transition-transform duration-300 ease-in-out transform "
-								style={{
-									gridArea: `${circle3.y} / ${circle3.x} / ${circle3.y + 1} / ${
-										circle3.x + 1
-									}`,
-								}}
-							></div>
-						</div>
+					<Board
+						target={target3}
+						activeButton={activeButton}
+						handleActions={handleActions}
+						setActiveButton={setActiveButton}
+						circle={circle3}
+						circleToMove={null}
+					/>
+					<Board
+						target={target2}
+						activeButton={activeButton}
+						handleActions={handleActions}
+						setActiveButton={setActiveButton}
+						circle={circle2}
+						circleToMove="circle3"
+					/>
+					<Board
+						target={target}
+						activeButton={activeButton}
+						handleActions={handleActions}
+						setActiveButton={setActiveButton}
+						circle={circle1}
+						circleToMove="circle2"
+					/>
 
-						<div className="grid grid-cols-80 grid-rows-20  bg-red-300 rounded-lg ">
-							<div
-								key={0}
-								className="canvas bg-blue-200 h-[150px] w-[150px] rounded-lg transition-transform duration-300 ease-in-out transform flex items-center justify-center"
-								style={{
-									gridArea: `${target2.y} / ${target2.x} / ${target2.y + 1} / ${
-										target2.x + 1
-									}`,
-								}}
-							>
-								<div className="grid grid-rows-2 grid-cols-3 gap-2 w-max">
-									{directions.map(dir => (
-										<ButtonIcon
-											key={dir}
-											direction={dir}
-											active={activeButton === dir}
-											handleActions={handleActions}
-											setActiveButton={setActiveButton}
-											circle="circle3"
-										/>
-									))}
-								</div>
-							</div>
-							<div
-								key={1}
-								className="canvas bg-red-400 h-[25px] w-[25px] rounded-full transition-transform duration-300 ease-in-out transform "
-								style={{
-									gridArea: `${circle2.y} / ${circle2.x} / ${circle2.y + 1} / ${
-										circle2.x + 1
-									}`,
-								}}
-							></div>
-						</div>
+					<ButtonContainer
+						activeButton={activeButton}
+						handleActions={handleActions}
+						setActiveButton={setActiveButton}
+						circleToMove="circle1"
+					/>
 
-						<div className="grid grid-cols-80 grid-rows-20  bg-slate-300 rounded-lg ">
-							<div
-								key={0}
-								className="canvas bg-blue-200 h-[150px] w-[150px] rounded-lg transition-transform duration-300 ease-in-out transform flex items-center justify-center"
-								style={{
-									gridArea: `${target.y} / ${target.x} / ${target.y + 1} / ${
-										target.x + 1
-									}`,
-								}}
-							>
-								<div className="grid grid-rows-2 grid-cols-3 gap-2 w-max">
-									{directions.map(dir => (
-										<ButtonIcon
-											key={dir}
-											direction={dir}
-											active={activeButton === dir}
-											handleActions={handleActions}
-											setActiveButton={setActiveButton}
-											circle="circle2"
-										/>
-									))}
-								</div>
-							</div>
-							<div
-								key={1}
-								className="canvas bg-red-400 h-[25px] w-[25px] rounded-full transition-transform duration-300 ease-in-out transform "
-								style={{
-									gridArea: `${circle1.y} / ${circle1.x} / ${circle1.y + 1} / ${
-										circle1.x + 1
-									}`,
-								}}
-							></div>
-						</div>
-					</div>
-					<div
-						key={0}
-						className="canvas bg-blue-200 h-[150px] w-[150px] rounded-lg transition-transform duration-300 ease-in-out transform flex items-center justify-center"
-						style={{
-							gridArea: `${target.y} / ${target.x} / ${target.y + 1} / ${
-								target.x + 1
-							}`,
-						}}
-					>
-						<div className="grid grid-rows-2 grid-cols-3 gap-2 w-max">
-							{directions.map(dir => (
-								<ButtonIcon
-									key={dir}
-									direction={dir}
-									active={activeButton === dir}
-									handleActions={handleActions}
-									setActiveButton={setActiveButton}
-									circle="circle1"
-								/>
-							))}
-						</div>
-					</div>
 					<div className="controller">
 						<button>Start</button>
 						<button>Pause</button>
@@ -286,6 +256,91 @@ export default function Home() {
 				</div>
 			</div>
 		</main>
+	)
+}
+
+function Board({
+	target,
+	activeButton,
+	handleActions,
+	setActiveButton,
+	circle,
+	circleToMove,
+}: {
+	target: { x: number; y: number }
+	activeButton: string
+	handleActions: (direction: Direction, circle: Circles) => void
+	setActiveButton: Dispatch<SetStateAction<string>>
+	circle: { x: number; y: number }
+	circleToMove: Circles | null
+}) {
+	return (
+		<div className="grid grid-cols-80 grid-rows-20  bg-slate-300 rounded-lg ">
+			<ButtonContainer
+				target={target}
+				activeButton={activeButton}
+				handleActions={handleActions}
+				setActiveButton={setActiveButton}
+				circleToMove={circleToMove}
+			/>
+
+			<Circle circle={circle} />
+		</div>
+	)
+}
+
+function Circle({ circle }: { circle: { x: number; y: number } }) {
+	return (
+		<div
+			key={1}
+			className="canvas bg-red-400 h-[25px] w-[25px] rounded-full transition-transform duration-300 ease-in-out transform "
+			style={{
+				gridArea: `${circle.y} / ${circle.x} / ${circle.y + 1} / ${
+					circle.x + 1
+				}`,
+			}}
+		></div>
+	)
+}
+
+function ButtonContainer({
+	target,
+	activeButton,
+	handleActions,
+	setActiveButton,
+	circleToMove,
+}: {
+	target?: { x: number; y: number }
+	activeButton: string
+	handleActions: (direction: Direction, circle: Circles) => void
+	setActiveButton: Dispatch<SetStateAction<string>>
+	circleToMove: Circles | null
+}) {
+	return (
+		<div
+			key={0}
+			className="canvas bg-blue-200 h-[150px] w-[150px] rounded-lg transition-transform duration-300 ease-in-out transform flex items-center justify-center"
+			style={{
+				gridArea: target
+					? `${target.y} / ${target.x} / ${target.y + 1} / ${target.x + 1}`
+					: "",
+			}}
+		>
+			{circleToMove && (
+				<div className="grid grid-rows-2 grid-cols-3 gap-2 w-max">
+					{directions.map(dir => (
+						<ButtonIcon
+							key={dir}
+							direction={dir}
+							active={activeButton === dir}
+							handleActions={handleActions}
+							setActiveButton={setActiveButton}
+							circle={circleToMove}
+						/>
+					))}
+				</div>
+			)}
+		</div>
 	)
 }
 
@@ -302,7 +357,7 @@ function ButtonIcon({
 	handleActions: Function
 	className?: string
 	setActiveButton: React.Dispatch<React.SetStateAction<string>>
-	circle: "circle1" | "circle2" | "circle3"
+	circle: Circles
 }) {
 	const actionIntervalRef = useRef<NodeJS.Timeout | null>(null)
 	useEffect(() => {

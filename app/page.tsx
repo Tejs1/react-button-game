@@ -9,7 +9,7 @@ import {
 } from "@radix-ui/react-icons"
 import { Button } from "@/components/ui/button"
 import { Dir } from "fs"
-const directions = ["up", "left", "down", , "right"] as const
+const directions = ["up", "left", "down", "right"] as const
 type Direction = (typeof directions)[number]
 
 export default function Home() {

@@ -134,34 +134,33 @@ export function ButtonIcon({
 	className?: string
 	setActiveButton: React.Dispatch<React.SetStateAction<string>>
 }) {
-	const actionIntervalRef = useRef<number | null>(null)
+	const actionIntervalRef = useRef<NodeJS.Timeout | null>(null)
 	useEffect(() => {
 		return () => {
 			if (actionIntervalRef.current) {
-				cancelAnimationFrame(actionIntervalRef.current)
+				setActiveButton("")
+				clearInterval(actionIntervalRef.current)
 				actionIntervalRef.current = null
 			}
 		}
 	}, [])
 
 	const startAction = () => {
+		handleActions(direction)
 		if (!actionIntervalRef.current) {
-			const performAction = () => {
+			actionIntervalRef.current = setInterval(() => {
 				handleActions(direction)
-				actionIntervalRef.current = requestAnimationFrame(performAction)
-			}
-			performAction()
+			}, 100) // Adjust the interval as needed
 		}
 	}
 
 	const stopAction = () => {
 		if (actionIntervalRef.current) {
-			cancelAnimationFrame(actionIntervalRef.current)
+			setActiveButton("")
+			clearInterval(actionIntervalRef.current)
 			actionIntervalRef.current = null
 		}
-		setActiveButton("") // Consider if this should be here or moved to ensure it's called appropriately
 	}
-
 	let Icon = ChevronRightIcon
 	let position = ""
 	switch (direction) {

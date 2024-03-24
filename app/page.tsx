@@ -57,8 +57,8 @@ export default function Home() {
 		}
 	}, [])
 	useEffect(() => {
-		console.log("circle", isCircleInTarget(circle1, target, 15, 15))
-	}, [circle1, circle1.x, circle1.y, target])
+		console.log("circle", isCircleInTarget(circle1, target2, 15, 15))
+	}, [circle1, circle1.x, circle1.y, target2])
 	useEffect(() => {
 		console.log("circle", isCircleInTarget(circle2, target, 15, 15))
 	}, [circle2, circle2.x, circle2.y, target])
@@ -354,6 +354,8 @@ function ButtonIcon({
 
 	return (
 		<Button
+			data-direction={direction}
+			name={circle}
 			variant="outline"
 			size="icon"
 			className={`${position} ${active ? "bg-blue-500" : ""} ${className}`}

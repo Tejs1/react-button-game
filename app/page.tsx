@@ -117,82 +117,37 @@ export default function Home() {
 	}, [circle2, circle2.x, circle2.y, target])
 
 	const handleActions = (direction: Direction, circle: Circles) => {
-		if (circle === "circle1") {
-			setCircle1(prevPosition => {
-				let newX = prevPosition.x
-				let newY = prevPosition.y
+		const setCircle = {
+			circle1: setCircle1,
+			circle2: setCircle2,
+			circle3: setCircle3,
+		}[circle]
+		const moveCircle = (prevPosition: { x: number; y: number }) => {
+			let newX = prevPosition.x
+			let newY = prevPosition.y
 
-				switch (direction) {
-					case "up":
-						newY = newY !== 1 ? newY - 1 : 18
-						break
-					case "down":
-						newY = (newY + 1) % 18
-						break
-					case "left":
-						newX = newX !== 1 ? newX - 1 : 78
-						break
-					case "right":
-						newX = (newX + 1) % 78
-						break
-					default:
-						break
-				}
+			switch (direction) {
+				case "up":
+					newY = newY !== 1 ? newY - 1 : 18
+					break
+				case "down":
+					newY = (newY + 1) % 18
+					break
+				case "left":
+					newX = newX !== 1 ? newX - 1 : 78
+					break
+				case "right":
+					newX = (newX + 1) % 78
+					break
+				default:
+					break
+			}
 
-				return { x: newX, y: newY }
-			})
+			return { x: newX, y: newY }
 		}
-		if (circle === "circle2") {
-			setCircle2(prevPosition => {
-				let newX = prevPosition.x
-				let newY = prevPosition.y
-
-				switch (direction) {
-					case "up":
-						newY = newY !== 1 ? newY - 1 : 18
-						break
-					case "down":
-						newY = (newY + 1) % 18
-						break
-					case "left":
-						newX = newX !== 1 ? newX - 1 : 78
-						break
-					case "right":
-						newX = (newX + 1) % 78
-						break
-					default:
-						break
-				}
-
-				return { x: newX, y: newY }
-			})
-		}
-		if (circle === "circle3") {
-			setCircle3(prevPosition => {
-				let newX = prevPosition.x
-				let newY = prevPosition.y
-
-				switch (direction) {
-					case "up":
-						newY = newY !== 1 ? newY - 1 : 18
-						break
-					case "down":
-						newY = (newY + 1) % 18
-						break
-					case "left":
-						newX = newX !== 1 ? newX - 1 : 78
-						break
-					case "right":
-						newX = (newX + 1) % 78
-						break
-					default:
-						break
-				}
-
-				return { x: newX, y: newY }
-			})
-		}
+		setCircle(prevPosition => moveCircle(prevPosition))
 	}
+
 	const isCircleInTarget = (
 		circle: { x: number; y: number },
 		target: { x: number; y: number },

@@ -14,6 +14,9 @@ type Direction = (typeof directions)[number]
 
 export default function Home() {
 	const [activeButton, setActiveButton] = useState("")
+	const [circleX, setCircleX] = useState(0)
+	const [circleY, setCircleY] = useState(0)
+	const [target, setTarget] = useState({ x: 0, y: 0 })
 
 	useEffect(() => {
 		const handleKeyDown = (e: { key: string }) => {
@@ -27,7 +30,9 @@ export default function Home() {
 				d: "right",
 				ArrowRight: "right",
 			}
+			console.log("key down", e.key)
 			const direction = directionKeyMap[e.key]
+			console.log("direction", direction)
 			if (direction) {
 				setActiveButton(direction)
 				handleActions(direction)
@@ -48,15 +53,43 @@ export default function Home() {
 	}, [])
 
 	const handleActions = (direction: Direction) => {
-		console.log(`Move ${direction}`)
+		console.log("direction", direction)
+		console.log("circleX", circleX, "circleY", circleY)
+		switch (direction) {
+			case "up":
+				setCircleY(circleY => (circleY !== 0 ? Math.abs(circleY - 1) : 16))
+				break
+			case "down":
+				setCircleY(circleY => circleY + 1)
+				break
+			case "left":
+				setCircleX(circleX => (circleX !== 0 ? Math.abs(circleX - 1) : 28))
+				break
+			case "right":
+				setCircleX(circleX => circleX + 1)
+				break
+		}
 	}
 
 	return (
 		<main className="flex min-h-screen flex-col items-center justify-between p-24">
 			<div className="game">
 				<div className="game-board">
-					<div className="board"></div>
-					<div className="grid grid-rows-2 grid-cols-3 gap-2">
+					<div className="board">
+						<div className="grid grid-cols-28 grid-rows-16  bg-slate-300 rounded-lg ">
+							<div
+								key={1}
+								className=" bg-red-400 h-[25px] w-[25px] rounded-full transition-transform duration-300 ease-in-out transform hover:scale-110"
+								style={{
+									gridColumnStart: circleX,
+									gridColumnEnd: circleX + 1,
+									gridRowStart: circleY,
+									gridRowEnd: circleY + 1,
+								}}
+							></div>
+						</div>
+					</div>
+					<div className="grid grid-rows-2 grid-cols-3 gap-2 w-max">
 						{directions.map(dir => (
 							<ButtonIcon
 								key={dir}
@@ -143,7 +176,6 @@ export function ButtonIcon({
 			onMouseDown={startAction}
 			onMouseUp={stopAction}
 			onMouseLeave={stopAction}
-			onClick={() => handleActions(direction)}
 		>
 			<Icon className="h-4 w-4" />
 		</Button>

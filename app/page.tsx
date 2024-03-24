@@ -161,7 +161,7 @@ export default function Home() {
 	return (
 		<main className="flex min-h-screen flex-col items-center justify-between p-24">
 			<div className="game">
-				<div className="game-board">
+				<div className="game-board flex items-center flex-col gap-4	">
 					<div className="board">
 						<div className="grid grid-cols-80 grid-rows-20  bg-slate-300 rounded-lg ">
 							<div
@@ -187,7 +187,7 @@ export default function Home() {
 						<div className="grid grid-cols-80 grid-rows-20  bg-red-300 rounded-lg ">
 							<div
 								key={0}
-								className="canvas bg-blue-200 h-[150px] w-[150px] rounded-lg transition-transform duration-300 ease-in-out transform "
+								className="canvas bg-blue-200 h-[150px] w-[150px] rounded-lg transition-transform duration-300 ease-in-out transform flex items-center justify-center"
 								style={{
 									gridArea: `${target2.y} / ${target2.x} / ${target2.y + 1} / ${
 										target2.x + 1
@@ -221,7 +221,7 @@ export default function Home() {
 						<div className="grid grid-cols-80 grid-rows-20  bg-slate-300 rounded-lg ">
 							<div
 								key={0}
-								className="canvas bg-blue-200 h-[150px] w-[150px] rounded-lg transition-transform duration-300 ease-in-out transform "
+								className="canvas bg-blue-200 h-[150px] w-[150px] rounded-lg transition-transform duration-300 ease-in-out transform flex items-center justify-center"
 								style={{
 									gridArea: `${target.y} / ${target.x} / ${target.y + 1} / ${
 										target.x + 1
@@ -252,17 +252,27 @@ export default function Home() {
 							></div>
 						</div>
 					</div>
-					<div className="grid grid-rows-2 grid-cols-3 gap-2 w-max">
-						{directions.map(dir => (
-							<ButtonIcon
-								key={dir}
-								direction={dir}
-								active={activeButton === dir}
-								handleActions={handleActions}
-								setActiveButton={setActiveButton}
-								circle="circle1"
-							/>
-						))}
+					<div
+						key={0}
+						className="canvas bg-blue-200 h-[150px] w-[150px] rounded-lg transition-transform duration-300 ease-in-out transform flex items-center justify-center"
+						style={{
+							gridArea: `${target.y} / ${target.x} / ${target.y + 1} / ${
+								target.x + 1
+							}`,
+						}}
+					>
+						<div className="grid grid-rows-2 grid-cols-3 gap-2 w-max">
+							{directions.map(dir => (
+								<ButtonIcon
+									key={dir}
+									direction={dir}
+									active={activeButton === dir}
+									handleActions={handleActions}
+									setActiveButton={setActiveButton}
+									circle="circle1"
+								/>
+							))}
+						</div>
 					</div>
 					<div className="controller">
 						<button>Start</button>

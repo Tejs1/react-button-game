@@ -14,8 +14,7 @@ type Direction = (typeof directions)[number]
 
 export default function Home() {
 	const [activeButton, setActiveButton] = useState("")
-	const [circleX, setCircleX] = useState(0)
-	const [circleY, setCircleY] = useState(0)
+	const [circle, setCircle] = useState({ x: 1, y: 1 })
 	const [target, setTarget] = useState({ x: 0, y: 0 })
 
 	useEffect(() => {
@@ -30,9 +29,7 @@ export default function Home() {
 				d: "right",
 				ArrowRight: "right",
 			}
-			console.log("key down", e.key)
 			const direction = directionKeyMap[e.key]
-			console.log("direction", direction)
 			if (direction) {
 				setActiveButton(direction)
 				handleActions(direction)
@@ -51,24 +48,34 @@ export default function Home() {
 			window.removeEventListener("keyup", handleKeyUp)
 		}
 	}, [])
+	useEffect(() => {
+		console.log("circle.x", circle.x, "circle.y", circle.y)
+	}, [circle.x, circle.y])
 
 	const handleActions = (direction: Direction) => {
-		console.log("direction", direction)
-		console.log("circleX", circleX, "circleY", circleY)
-		switch (direction) {
-			case "up":
-				setCircleY(y => (y > 0 ? y - 1 : 16))
-				break
-			case "down":
-				setCircleY(y => (y + 1) % 17)
-				break
-			case "left":
-				setCircleX(x => (x > 0 ? x - 1 : 28))
-				break
-			case "right":
-				setCircleX(x => (x + 1) % 29)
-				break
-		}
+		setCircle(prevPosition => {
+			let newX = prevPosition.x
+			let newY = prevPosition.y
+
+			switch (direction) {
+				case "up":
+					newY = newY !== 1 ? newY - 1 : 58
+					break
+				case "down":
+					newY = (newY + 1) % 58
+					break
+				case "left":
+					newX = newX !== 1 ? newX - 1 : 78
+					break
+				case "right":
+					newX = (newX + 1) % 78
+					break
+				default:
+					break
+			}
+
+			return { x: newX, y: newY }
+		})
 	}
 
 	return (
@@ -76,15 +83,14 @@ export default function Home() {
 			<div className="game">
 				<div className="game-board">
 					<div className="board">
-						<div className="grid grid-cols-28 grid-rows-16  bg-slate-300 rounded-lg ">
+						<div className="grid grid-cols-80 grid-rows-60  bg-slate-300 rounded-lg ">
 							<div
 								key={1}
 								className=" bg-red-400 h-[25px] w-[25px] rounded-full transition-transform duration-300 ease-in-out transform hover:scale-110"
 								style={{
-									gridColumnStart: circleX,
-									gridColumnEnd: circleX + 1,
-									gridRowStart: circleY,
-									gridRowEnd: circleY + 1,
+									gridArea: `${circle.y} / ${circle.x} / ${circle.y + 1} / ${
+										circle.x + 1
+									}`,
 								}}
 							></div>
 						</div>
@@ -128,23 +134,32 @@ export function ButtonIcon({
 	className?: string
 	setActiveButton: React.Dispatch<React.SetStateAction<string>>
 }) {
-	const actionIntervalRef = useRef<NodeJS.Timeout | null>(null)
+	const actionIntervalRef = useRef<number | null>(null)
+	useEffect(() => {
+		return () => {
+			if (actionIntervalRef.current) {
+				cancelAnimationFrame(actionIntervalRef.current)
+				actionIntervalRef.current = null
+			}
+		}
+	}, [])
 
 	const startAction = () => {
-		handleActions(direction)
 		if (!actionIntervalRef.current) {
-			actionIntervalRef.current = setInterval(() => {
+			const performAction = () => {
 				handleActions(direction)
-			}, 100) // Adjust the interval as needed
+				actionIntervalRef.current = requestAnimationFrame(performAction)
+			}
+			performAction()
 		}
 	}
 
 	const stopAction = () => {
 		if (actionIntervalRef.current) {
-			setActiveButton("")
-			clearInterval(actionIntervalRef.current)
+			cancelAnimationFrame(actionIntervalRef.current)
 			actionIntervalRef.current = null
 		}
+		setActiveButton("") // Consider if this should be here or moved to ensure it's called appropriately
 	}
 
 	let Icon = ChevronRightIcon
@@ -176,6 +191,8 @@ export function ButtonIcon({
 			onMouseDown={startAction}
 			onMouseUp={stopAction}
 			onMouseLeave={stopAction}
+			onTouchStart={startAction}
+			onTouchEnd={stopAction}
 		>
 			<Icon className="h-4 w-4" />
 		</Button>

@@ -19,7 +19,7 @@ export default function Home() {
 	const [circle3, setCircle3] = useState({ x: 1, y: 1 })
 	const [target, setTarget] = useState({ x: 30, y: 4 })
 	const [target2, setTarget2] = useState({ x: 30, y: 4 })
-	const [target3, setTarget3] = useState({ x: 50, y: 10 })
+	const [target3, setTarget3] = useState({ x: 50, y: 2 })
 
 	useEffect(() => {
 		const randomX = Math.abs(Math.floor(Math.random() * 78 - 15) + 1) // Generates a number between 1 and 78

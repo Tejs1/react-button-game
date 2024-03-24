@@ -17,27 +17,20 @@ export default function Home() {
 
 	useEffect(() => {
 		const handleKeyDown = (e: { key: string }) => {
-			switch (e.key) {
-				case "w":
-				case "ArrowUp":
-					setActiveButton("up")
-					handleActions("up")
-					break
-				case "s":
-				case "ArrowDown":
-					setActiveButton("down")
-					handleActions("down")
-					break
-				case "a":
-				case "ArrowLeft":
-					setActiveButton("left")
-					handleActions("left")
-					break
-				case "d":
-				case "ArrowRight":
-					setActiveButton("right")
-					handleActions("right")
-					break
+			const directionKeyMap: { [key: string]: Direction } = {
+				w: "up",
+				ArrowUp: "up",
+				s: "down",
+				ArrowDown: "down",
+				a: "left",
+				ArrowLeft: "left",
+				d: "right",
+				ArrowRight: "right",
+			}
+			const direction = directionKeyMap[e.key]
+			if (direction) {
+				setActiveButton(direction)
+				handleActions(direction)
 			}
 		}
 

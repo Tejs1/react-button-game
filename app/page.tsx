@@ -10,6 +10,8 @@ import {
 	MutableRefObject,
 } from "react"
 import Image from "next/image"
+import { StoreProvider } from "easy-peasy"
+import { store } from "@/lib/store"
 import {
 	ChevronRightIcon,
 	ChevronLeftIcon,
@@ -103,12 +105,14 @@ export default function Home() {
 	}, [])
 
 	useEffect(() => {
+		console.log("circle1 in target", target2, circle1)
 		if (isCircleInTarget(circle1, target2, 15, 15)) {
-			if (circle1.x === 36 && circle1.y === 8) {
+			if (circle1.x === target2.x + 6 && circle1.y === target2.y + 4) {
 				startAction("down", "circle2", button1target2IntervalRef)
 				console.log("moved circle1")
 			} else {
-				stopAction(button1target2IntervalRef)
+				if (button1target2IntervalRef.current)
+					stopAction(button1target2IntervalRef)
 			}
 		}
 	}, [circle1, circle1.x, circle1.y, startAction, target2])
@@ -163,53 +167,55 @@ export default function Home() {
 		return overlapsHorizontally && overlapsVertically
 	}
 	return (
-		<main className="flex min-h-screen flex-col items-center justify-center m-auto">
-			<div className="game">
-				<div className="game-board flex items-center flex-col gap-4	">
-					<Board
-						target={target3}
-						activeButton={activeButton}
-						handleActions={handleActions}
-						setActiveButton={setActiveButton}
-						circle={circle3}
-						circleToMove={null}
-					/>
-					<Board
-						target={target2}
-						activeButton={activeButton}
-						handleActions={handleActions}
-						setActiveButton={setActiveButton}
-						circle={circle2}
-						circleToMove="circle3"
-					/>
-					<Board
-						target={target}
-						activeButton={activeButton}
-						handleActions={handleActions}
-						setActiveButton={setActiveButton}
-						circle={circle1}
-						circleToMove="circle2"
-					/>
+		<StoreProvider store={store}>
+			<main className="flex min-h-screen flex-col items-center justify-center m-auto">
+				<div className="game">
+					<div className="game-board flex items-center flex-col gap-4	">
+						<Board
+							target={target3}
+							activeButton={activeButton}
+							handleActions={handleActions}
+							setActiveButton={setActiveButton}
+							circle={circle3}
+							circleToMove={null}
+						/>
+						<Board
+							target={target2}
+							activeButton={activeButton}
+							handleActions={handleActions}
+							setActiveButton={setActiveButton}
+							circle={circle2}
+							circleToMove="circle3"
+						/>
+						<Board
+							target={target}
+							activeButton={activeButton}
+							handleActions={handleActions}
+							setActiveButton={setActiveButton}
+							circle={circle1}
+							circleToMove="circle2"
+						/>
 
-					<ButtonContainer
-						activeButton={activeButton}
-						handleActions={handleActions}
-						setActiveButton={setActiveButton}
-						circleToMove="circle1"
-					/>
+						<ButtonContainer
+							activeButton={activeButton}
+							handleActions={handleActions}
+							setActiveButton={setActiveButton}
+							circleToMove="circle1"
+						/>
 
-					<div className="controller">
-						<button>Start</button>
-						<button>Pause</button>
-						<button>Reset</button>
+						<div className="controller">
+							<button>Start</button>
+							<button>Pause</button>
+							<button>Reset</button>
+						</div>
+					</div>
+					<div className="game-info">
+						<div></div>
+						<ol></ol>
 					</div>
 				</div>
-				<div className="game-info">
-					<div></div>
-					<ol></ol>
-				</div>
-			</div>
-		</main>
+			</main>
+		</StoreProvider>
 	)
 }
 

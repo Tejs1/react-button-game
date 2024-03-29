@@ -20,6 +20,7 @@ import {
 	ActionName,
 	CoordinatesPayload,
 	initialTarget,
+	Target,
 } from "@/lib/store"
 
 import {
@@ -36,9 +37,6 @@ type Direction = (typeof directions)[number]
 
 export default function App() {
 	const store = useStoreState(state => state)
-	useEffect(() => {
-		console.log(store)
-	}, [store])
 
 	const [activeButton, setActiveButton] = useState("")
 	const [circle1, setCircle1] = useState({ x: 1, y: 1 })
@@ -47,14 +45,14 @@ export default function App() {
 	const [target, setTarget] = useState({ x: 30, y: 4 })
 	const [target2, setTarget2] = useState({ x: 30, y: 4 })
 	const [target3, setTarget3] = useState({ x: 50, y: 2 })
-	const button1targetIntervalRef = useRef<NodeJS.Timeout | null>(null)
-	const button2targetIntervalRef = useRef<NodeJS.Timeout | null>(null)
-	const button3targetIntervalRef = useRef<NodeJS.Timeout | null>(null)
-	const button4targetIntervalRef = useRef<NodeJS.Timeout | null>(null)
-	const button1target2IntervalRef = useRef<NodeJS.Timeout | null>(null)
-	const button2target2IntervalRef = useRef<NodeJS.Timeout | null>(null)
-	const button3target2IntervalRef = useRef<NodeJS.Timeout | null>(null)
-	const button4target2IntervalRef = useRef<NodeJS.Timeout | null>(null)
+	const upTargetIntervalRef = useRef<NodeJS.Timeout | null>(null)
+	const downTargetIntervalRef = useRef<NodeJS.Timeout | null>(null)
+	const leftTargetIntervalRef = useRef<NodeJS.Timeout | null>(null)
+	const rightTargetIntervalRef = useRef<NodeJS.Timeout | null>(null)
+	const upTarget2IntervalRef = useRef<NodeJS.Timeout | null>(null)
+	const downTarget2IntervalRef = useRef<NodeJS.Timeout | null>(null)
+	const leftTarget2IntervalRef = useRef<NodeJS.Timeout | null>(null)
+	const rightTarget2IntervalRef = useRef<NodeJS.Timeout | null>(null)
 
 	const startAction = useCallback(
 		(
@@ -120,18 +118,54 @@ export default function App() {
 	}, [])
 
 	useEffect(() => {
-		if (isCircleInTarget(circle1, target2, 15, 15)) {
-			if (circle1.x === target2.x + 6 && circle1.y === target2.y + 4) {
-				startAction("down", "circle2", button1target2IntervalRef)
-				console.log("moved circle1")
+		if (isCircleInTarget(store.Target1)) {
+			console.log("circle1 in target", getDirection(store.Target1))
+			if (getDirection(store.Target1)) {
+				if (getDirection(store.Target1) === "up") {
+					startAction("up", "circle2", upTargetIntervalRef)
+				}
+				if (getDirection(store.Target1) === "down") {
+					startAction("down", "circle2", downTargetIntervalRef)
+				}
+				if (getDirection(store.Target1) === "left") {
+					startAction("left", "circle2", leftTargetIntervalRef)
+				}
+				if (getDirection(store.Target1) === "right") {
+					startAction("right", "circle2", rightTargetIntervalRef)
+				}
 			} else {
-				if (button1target2IntervalRef.current)
-					stopAction(button1target2IntervalRef)
+				stopAction(upTargetIntervalRef)
+				stopAction(downTargetIntervalRef)
+				stopAction(leftTargetIntervalRef)
+				stopAction(rightTargetIntervalRef)
 			}
 		}
-	}, [circle1, circle1.x, circle1.y, startAction, target2])
+	}, [circle1, circle1.x, circle1.y, startAction, target2, store.Target1])
 
-	useEffect(() => {}, [circle2, circle2.x, circle2.y, target])
+	useEffect(() => {
+		if (isCircleInTarget(store.Target2)) {
+			console.log("circle2 in target", getDirection(store.Target2))
+			if (getDirection(store.Target2)) {
+				if (getDirection(store.Target2) === "up") {
+					startAction("up", "circle3", upTarget2IntervalRef)
+				}
+				if (getDirection(store.Target2) === "down") {
+					startAction("down", "circle3", downTarget2IntervalRef)
+				}
+				if (getDirection(store.Target2) === "left") {
+					startAction("left", "circle3", leftTarget2IntervalRef)
+				}
+				if (getDirection(store.Target2) === "right") {
+					startAction("right", "circle3", rightTarget2IntervalRef)
+				}
+			} else {
+				stopAction(upTarget2IntervalRef)
+				stopAction(downTarget2IntervalRef)
+				stopAction(leftTarget2IntervalRef)
+				stopAction(rightTarget2IntervalRef)
+			}
+		}
+	}, [circle2, circle2.x, circle2.y, startAction, target2, store.Target2])
 
 	const handleActions = (direction: Direction, circle: Circles) => {
 		const setCircle = {
@@ -165,20 +199,62 @@ export default function App() {
 		setCircle(prevPosition => moveCircle(prevPosition))
 	}
 
-	const isCircleInTarget = (
-		circle: { x: number; y: number },
-		target: { x: number; y: number },
-		targetWidth: number,
-		targetHeight: number,
-	) => {
-		// Check if the circle is within the horizontal bounds of the target box
-		const overlapsHorizontally =
-			circle.x >= target.x && circle.x <= target.x + targetWidth
-		// Check if the circle is within the vertical bounds of the target box
-		const overlapsVertically =
-			circle.y >= target.y && circle.y <= target.y + targetHeight
-
-		return overlapsHorizontally && overlapsVertically
+	const isCircleInTarget = (target: Target) => {
+		const { x, y, width, height } = target.value
+		const {
+			x: circleX,
+			y: circleY,
+			width: circleW,
+			height: circleH,
+		} = target.circle
+		if (!x || !y || !width || !height || !circleX || !circleY) return false
+		return (
+			circleX >= x &&
+			circleX <= x + width &&
+			circleY >= y &&
+			circleY <= y + height
+		)
+	}
+	const getDirection = (target: Target) => {
+		const { up, down, left, right, circle } = target
+		const { x: circleX, y: circleY, width: circleW, height: circleH } = circle
+		const { x: upX, y: upY, width: upW, height: upH } = up
+		const { x: downX, y: downY, width: downW, height: downH } = down
+		const { x: leftX, y: leftY, width: leftW, height: leftH } = left
+		const { x: rightX, y: rightY, width: rightW, height: rightH } = right
+		if (
+			circleX >= upX &&
+			circleX <= upX + upW &&
+			circleY >= upY &&
+			circleY <= upY + upH
+		) {
+			return "up"
+		}
+		if (
+			circleX >= downX &&
+			circleX <= downX + downW &&
+			circleY >= downY &&
+			circleY <= downY + downH
+		) {
+			return "down"
+		}
+		if (
+			circleX >= leftX &&
+			circleX <= leftX + leftW &&
+			circleY >= leftY &&
+			circleY <= leftY + leftH
+		) {
+			return "left"
+		}
+		if (
+			circleX >= rightX &&
+			circleX <= rightX + rightW &&
+			circleY >= rightY &&
+			circleY <= rightY + rightH
+		) {
+			return "right"
+		}
+		return false
 	}
 	return (
 		<main className="flex min-h-screen flex-col items-center justify-center m-auto">
@@ -279,7 +355,6 @@ function Circle({
 	const action = useStoreActions(actions => actions.setCircle)
 	useEffect(() => {
 		if (circleRef.current) {
-			console.log(circleRef.current)
 			const { x, y, width, height } = circleRef.current.getBoundingClientRect()
 			action({ circle: { x, y, width, height }, target: id })
 		}

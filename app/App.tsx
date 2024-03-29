@@ -10,7 +10,7 @@ import {
 	MutableRefObject,
 } from "react"
 import Image from "next/image"
-import { StoreProvider } from "easy-peasy"
+
 import {
 	useStoreActions,
 	useStoreState,
@@ -34,9 +34,12 @@ const directions = ["up", "left", "down", "right"] as const
 type Circles = "circle1" | "circle2" | "circle3"
 type Direction = (typeof directions)[number]
 
-export default function Home() {
-	const store = useStoreState(store => store)
-	const setOffset = useStoreActions(actions => actions.setAllOffsets)
+export default function App() {
+	const store = useStoreState(state => state)
+	useEffect(() => {
+		console.log(store)
+	}, [store])
+
 	const [activeButton, setActiveButton] = useState("")
 	const [circle1, setCircle1] = useState({ x: 1, y: 1 })
 	const [circle2, setCircle2] = useState({ x: 1, y: 1 })
@@ -81,9 +84,6 @@ export default function Home() {
 		}
 	}
 	useEffect(() => {
-		// setoffset()
-		setOffset()
-
 		const randomX = Math.abs(Math.floor(Math.random() * 78 - 15) + 1) // Generates a number between 1 and 78
 		const randomY = Math.floor(Math.random() * 18 - 15) + 1 // Generates a number between 1 and 18
 		// setTarget({ x: randomX, y: randomY })
@@ -263,14 +263,30 @@ function Board({
 				id={id}
 			/>
 
-			<Circle circle={circle} />
+			<Circle circle={circle} id={id} />
 		</div>
 	)
 }
 
-function Circle({ circle }: { circle: { x: number; y: number } }) {
+function Circle({
+	circle,
+	id,
+}: {
+	circle: { x: number; y: number }
+	id: Targets
+}) {
+	const circleRef = useRef<HTMLDivElement | null>(null)
+	const action = useStoreActions(actions => actions.setCircle)
+	useEffect(() => {
+		if (circleRef.current) {
+			console.log(circleRef.current)
+			const { x, y, width, height } = circleRef.current.getBoundingClientRect()
+			action({ circle: { x, y, width, height }, target: id })
+		}
+	}, [action, circle, id])
 	return (
 		<div
+			ref={circleRef}
 			key={1}
 			className="canvas bg-red-400 h-[25px] w-[25px] rounded-full transition-transform duration-300 ease-in-out transform "
 			style={{
@@ -310,6 +326,8 @@ function ButtonContainer({
 				value: {
 					x: buttonContainerPosition.x,
 					y: buttonContainerPosition.y,
+					width: buttonContainerPosition.width,
+					height: buttonContainerPosition.height,
 				},
 				target: id,
 			})
@@ -375,9 +393,13 @@ function ButtonIcon({
 		const payload: CoordinatesPayload = {
 			...initialTarget,
 			target: id,
-			[direction]: { x: buttonPosition.x, y: buttonPosition.y },
+			[direction]: {
+				x: buttonPosition.x,
+				y: buttonPosition.y,
+				width: buttonPosition.width,
+				height: buttonPosition.height,
+			},
 		}
-		payload[direction] = { x: buttonPosition.x, y: buttonPosition.y }
 		action(payload)
 		return () => {
 			if (actionIntervalRef.current) {

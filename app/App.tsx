@@ -224,33 +224,33 @@ export default function App() {
 		const { x: rightX, y: rightY, width: rightW, height: rightH } = right
 		if (
 			circleX >= upX &&
-			circleX <= upX + upW &&
+			circleX + circleW <= upX + upW &&
 			circleY >= upY &&
-			circleY <= upY + upH
+			circleY + circleH <= upY + upH
 		) {
 			return "up"
 		}
 		if (
 			circleX >= downX &&
-			circleX <= downX + downW &&
+			circleX + circleW <= downX + downW &&
 			circleY >= downY &&
-			circleY <= downY + downH
+			circleY + circleH <= downY + downH
 		) {
 			return "down"
 		}
 		if (
 			circleX >= leftX &&
-			circleX <= leftX + leftW &&
+			circleX + circleW <= leftX + leftW &&
 			circleY >= leftY &&
-			circleY <= leftY + leftH
+			circleY + circleH <= leftY + leftH
 		) {
 			return "left"
 		}
 		if (
 			circleX >= rightX &&
-			circleX <= rightX + rightW &&
+			circleX + circleW <= rightX + rightW &&
 			circleY >= rightY &&
-			circleY <= rightY + rightH
+			circleY + circleH <= rightY + rightH
 		) {
 			return "right"
 		}

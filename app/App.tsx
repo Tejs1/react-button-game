@@ -197,6 +197,36 @@ export default function App() {
 			actionIntervalRef.current = null
 		}
 	}
+	const isCircleInTarget = useCallback(
+		(containerName: Targets) => {
+			const store = Store.getState()
+			const { width, height } = store[containerName].value
+			const { width: circleW, height: circleH } = store[containerName].circle
+			const ContainerOffset = {
+				Target1: target1,
+				Target2: target2,
+				Target3: target3,
+				Target: target1,
+			}[containerName]
+
+			const CircleOffset = {
+				Target1: circle1,
+				Target2: circle2,
+				Target3: circle3,
+				Target: circle1,
+			}[containerName]
+
+			if (!width || !height || !circleW || !circleH) return false
+			return (
+				CircleOffset.x >= ContainerOffset.x &&
+				CircleOffset.x + circleW <= ContainerOffset.x + width &&
+				CircleOffset.y >= ContainerOffset.y &&
+				CircleOffset.y + circleH <= ContainerOffset.y + height
+			)
+		},
+		[circle1, circle2, circle3, target1, target2, target3],
+	)
+
 	useEffect(() => {
 		const randomX = Math.abs(Math.floor(Math.random() * 78 - 15) + 1) // Generates a number between 1 and 78
 		const randomY = Math.floor(Math.random() * 18 - 15) + 1 // Generates a number between 1 and 18
@@ -232,35 +262,7 @@ export default function App() {
 			window.removeEventListener("keyup", handleKeyUp)
 		}
 	}, [handleActions])
-	const isCircleInTarget = useCallback(
-		(containerName: Targets) => {
-			const store = Store.getState()
-			const { width, height } = store[containerName].value
-			const { width: circleW, height: circleH } = store[containerName].circle
-			const ContainerOffset = {
-				Target1: target1,
-				Target2: target2,
-				Target3: target3,
-				Target: target1,
-			}[containerName]
 
-			const CircleOffset = {
-				Target1: circle1,
-				Target2: circle2,
-				Target3: circle3,
-				Target: circle1,
-			}[containerName]
-
-			if (!width || !height || !circleW || !circleH) return false
-			return (
-				CircleOffset.x >= ContainerOffset.x &&
-				CircleOffset.x + circleW <= ContainerOffset.x + width &&
-				CircleOffset.y >= ContainerOffset.y &&
-				CircleOffset.y + circleH <= ContainerOffset.y + height
-			)
-		},
-		[circle1, circle2, circle3, target1, target2, target3],
-	)
 	useEffect(() => {
 		if (!isCircleInTarget("Target1")) return
 		if (!getDirection("Target1")) {
@@ -380,7 +382,7 @@ function Board({
 			const { x, y, width, height } = BoardRef.current.getBoundingClientRect()
 			action({ dimentions: { x, y, width, height }, target: id })
 		}
-	}, [])
+	}, [action, id])
 	return (
 		<div
 			ref={BoardRef}
@@ -472,7 +474,7 @@ function ButtonContainer({
 				target: id,
 			})
 		}
-	}, [])
+	}, [action, id])
 	const translateX = target?.x || 0
 	const translateY = target?.y || 0
 	return (
@@ -551,7 +553,7 @@ function ButtonIcon({
 				actionIntervalRef.current = null
 			}
 		}
-	}, [])
+	}, [action, direction, id, setActiveButton])
 
 	const startAction = () => {
 		handleActions(direction, circle)

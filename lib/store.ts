@@ -28,7 +28,9 @@ export interface BaseCoordinates {
 	circle: Coordinates
 }
 
-export interface Target extends BaseCoordinates {}
+export interface Target extends BaseCoordinates {
+	boardDimentions: Coordinates
+}
 export type CoordinatesPayload = BaseCoordinates & { target: Targets }
 export type setUpProps = { up: Coordinates; target: Targets }
 export type setDownProps = { down: Coordinates; target: Targets }
@@ -36,6 +38,7 @@ export type setLeftProps = { left: Coordinates; target: Targets }
 export type setRightProps = { right: Coordinates; target: Targets }
 export type setValuesProps = { value: Coordinates; target: Targets }
 export type setCircleProps = { circle: Coordinates; target: Targets }
+export type setBoardDimention = { dimentions: Coordinates; target: Targets }
 
 export type StoreModel = Record<Targets, Target> & {
 	setUp: Action<StoreModel, setUpProps>
@@ -44,6 +47,7 @@ export type StoreModel = Record<Targets, Target> & {
 	setRight: Action<StoreModel, setRightProps>
 	setValue: Action<StoreModel, setValuesProps>
 	setCircle: Action<StoreModel, setCircleProps>
+	setBoardDimentions: Action<StoreModel, setBoardDimention>
 }
 
 export const initialCoordinates: Coordinates = {
@@ -60,6 +64,7 @@ export const initialTarget: Target = {
 	left: initialCoordinates,
 	right: initialCoordinates,
 	circle: initialCoordinates,
+	boardDimentions: initialCoordinates,
 }
 
 const store = createStore<StoreModel>({
@@ -84,6 +89,9 @@ const store = createStore<StoreModel>({
 	}),
 	setCircle: action((state, payload) => {
 		state[payload.target].circle = payload.circle
+	}),
+	setBoardDimentions: action((state, payload) => {
+		state[payload.target].boardDimentions = payload.dimentions
 	}),
 })
 

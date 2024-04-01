@@ -21,6 +21,7 @@ import {
 	CoordinatesPayload,
 	initialTarget,
 	Target,
+	store as Store,
 } from "@/lib/store"
 
 import {
@@ -30,19 +31,16 @@ import {
 	ChevronDownIcon,
 } from "@radix-ui/react-icons"
 import { Button } from "@/components/ui/button"
-import { Dir } from "fs"
 const directions = ["up", "left", "down", "right"] as const
 type Circles = "circle1" | "circle2" | "circle3"
 type Direction = (typeof directions)[number]
 
 export default function App() {
-	const store = useStoreState(state => state)
-
 	const [activeButton, setActiveButton] = useState("")
-	const [circle1, setCircle1] = useState({ x: 1, y: 1 })
-	const [circle2, setCircle2] = useState({ x: 1, y: 1 })
-	const [circle3, setCircle3] = useState({ x: 1, y: 1 })
-	const [target, setTarget] = useState({ x: 30, y: 4 })
+	const [circle1, setCircle1] = useState({ x: 0, y: 0 })
+	const [circle2, setCircle2] = useState({ x: 0, y: 0 })
+	const [circle3, setCircle3] = useState({ x: 0, y: 0 })
+	const [target1, setTarget1] = useState({ x: 30, y: 4 })
 	const [target2, setTarget2] = useState({ x: 30, y: 4 })
 	const [target3, setTarget3] = useState({ x: 50, y: 2 })
 	const upTargetIntervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -53,175 +51,19 @@ export default function App() {
 	const downTarget2IntervalRef = useRef<NodeJS.Timeout | null>(null)
 	const leftTarget2IntervalRef = useRef<NodeJS.Timeout | null>(null)
 	const rightTarget2IntervalRef = useRef<NodeJS.Timeout | null>(null)
+	const store = Store.getState()
 
-	const startAction = useCallback(
-		(
-			direction: Direction,
-			circle: Circles,
-			actionIntervalRef: MutableRefObject<NodeJS.Timeout | null>,
-		) => {
-			if (!actionIntervalRef.current) {
-				actionIntervalRef.current = setInterval(() => {
-					handleActions(direction, circle)
-				}, 100) // Adjust the interval as needed
-				console.log("starting")
-				console.log(actionIntervalRef.current)
-			}
-		},
-		[],
-	)
-	const stopAction = (actionIntervalRef: {
-		current: NodeJS.Timeout | null
-	}) => {
-		console.log("stopping")
-		if (actionIntervalRef.current) {
-			console.log("stopping 2")
-			setActiveButton("")
-			clearInterval(actionIntervalRef.current)
-			actionIntervalRef.current = null
-		}
-	}
-	useEffect(() => {
-		const randomX = Math.abs(Math.floor(Math.random() * 78 - 15) + 1) // Generates a number between 1 and 78
-		const randomY = Math.floor(Math.random() * 18 - 15) + 1 // Generates a number between 1 and 18
-		// setTarget({ x: randomX, y: randomY })
-		const handleKeyDown = (e: { key: string }) => {
-			const directionKeyMap: { [key: string]: Direction } = {
-				w: "up",
-				ArrowUp: "up",
-				s: "down",
-				ArrowDown: "down",
-				a: "left",
-				ArrowLeft: "left",
-				d: "right",
-				ArrowRight: "right",
-			}
-
-			const direction = directionKeyMap[e.key]
-			if (direction) {
-				setActiveButton(direction)
-				handleActions(direction, "circle1")
-			}
-		}
-
-		const handleKeyUp = () => {
-			setActiveButton("")
-		}
-
-		window.addEventListener("keydown", handleKeyDown)
-		window.addEventListener("keyup", handleKeyUp)
-
-		return () => {
-			window.removeEventListener("keydown", handleKeyDown)
-			window.removeEventListener("keyup", handleKeyUp)
-		}
-	}, [])
-
-	useEffect(() => {
-		if (isCircleInTarget(store.Target1)) {
-			console.log("circle1 in target", getDirection(store.Target1))
-			if (getDirection(store.Target1)) {
-				if (getDirection(store.Target1) === "up") {
-					startAction("up", "circle2", upTargetIntervalRef)
-				}
-				if (getDirection(store.Target1) === "down") {
-					startAction("down", "circle2", downTargetIntervalRef)
-				}
-				if (getDirection(store.Target1) === "left") {
-					startAction("left", "circle2", leftTargetIntervalRef)
-				}
-				if (getDirection(store.Target1) === "right") {
-					startAction("right", "circle2", rightTargetIntervalRef)
-				}
-			} else {
-				stopAction(upTargetIntervalRef)
-				stopAction(downTargetIntervalRef)
-				stopAction(leftTargetIntervalRef)
-				stopAction(rightTargetIntervalRef)
-			}
-		}
-	}, [circle1, circle1.x, circle1.y, startAction, target2, store.Target1])
-
-	useEffect(() => {
-		if (isCircleInTarget(store.Target2)) {
-			console.log("circle2 in target", getDirection(store.Target2))
-			if (getDirection(store.Target2)) {
-				if (getDirection(store.Target2) === "up") {
-					startAction("up", "circle3", upTarget2IntervalRef)
-				}
-				if (getDirection(store.Target2) === "down") {
-					startAction("down", "circle3", downTarget2IntervalRef)
-				}
-				if (getDirection(store.Target2) === "left") {
-					startAction("left", "circle3", leftTarget2IntervalRef)
-				}
-				if (getDirection(store.Target2) === "right") {
-					startAction("right", "circle3", rightTarget2IntervalRef)
-				}
-			} else {
-				stopAction(upTarget2IntervalRef)
-				stopAction(downTarget2IntervalRef)
-				stopAction(leftTarget2IntervalRef)
-				stopAction(rightTarget2IntervalRef)
-			}
-		}
-	}, [circle2, circle2.x, circle2.y, startAction, target2, store.Target2])
-
-	const handleActions = (direction: Direction, circle: Circles) => {
-		const setCircle = {
-			circle1: setCircle1,
-			circle2: setCircle2,
-			circle3: setCircle3,
-		}[circle]
-		const moveCircle = (prevPosition: { x: number; y: number }) => {
-			let newX = prevPosition.x
-			let newY = prevPosition.y
-
-			switch (direction) {
-				case "up":
-					newY = newY !== 1 ? newY - 1 : 18
-					break
-				case "down":
-					newY = (newY + 1) % 18
-					break
-				case "left":
-					newX = newX !== 1 ? newX - 1 : 78
-					break
-				case "right":
-					newX = (newX + 1) % 78
-					break
-				default:
-					break
-			}
-
-			return { x: newX, y: newY }
-		}
-		setCircle(prevPosition => moveCircle(prevPosition))
-	}
-
-	const isCircleInTarget = (target: Target) => {
-		const { x, y, width, height } = target.value
-		const {
-			x: circleX,
-			y: circleY,
-			width: circleW,
-			height: circleH,
-		} = target.circle
-		if (!x || !y || !width || !height || !circleX || !circleY) return false
-		return (
-			circleX >= x &&
-			circleX <= x + width &&
-			circleY >= y &&
-			circleY <= y + height
-		)
-	}
-	const getDirection = (target: Target) => {
+	const getDirection = useCallback((target: Target) => {
 		const { up, down, left, right, circle } = target
 		const { x: circleX, y: circleY, width: circleW, height: circleH } = circle
 		const { x: upX, y: upY, width: upW, height: upH } = up
 		const { x: downX, y: downY, width: downW, height: downH } = down
 		const { x: leftX, y: leftY, width: leftW, height: leftH } = left
 		const { x: rightX, y: rightY, width: rightW, height: rightH } = right
+
+		console.log(circleX, circleY, circleW, circleH)
+		console.log(upX, upY, upW, upH)
+
 		if (
 			circleX >= upX &&
 			circleX + circleW <= upX + upW &&
@@ -255,57 +97,238 @@ export default function App() {
 			return "right"
 		}
 		return false
+	}, [])
+	const handleActions = useCallback(
+		(direction: Direction, circle: Circles) => {
+			const store = Store.getState()
+
+			const setCircle = {
+				circle1: setCircle1,
+				circle2: setCircle2,
+				circle3: setCircle3,
+			}[circle]
+			const Circle = {
+				circle1: circle1,
+				circle2: circle2,
+				circle3: circle3,
+			}[circle]
+			const target = {
+				circle1: "Target1",
+				circle2: "Target2",
+				circle3: "Target3",
+			}[circle]
+
+			const moveCircle = (prevPosition: { x: number; y: number }) => {
+				const { x, y, height, width } =
+					store[target as keyof typeof store].boardDimentions
+				const {
+					height: circleHeight,
+					width: circleWidth,
+					x: cx,
+					y: cy,
+				} = store[target as keyof typeof store].circle
+				let newX = prevPosition.x
+				let newY = prevPosition.y
+
+				switch (direction) {
+					case "up":
+						newY = newY > 10 ? newY - 10 : height - circleHeight
+						break
+					case "down":
+						newY = newY + circleHeight < height ? newY + 10 : 0
+						break
+					case "left":
+						newX = newX > 10 ? newX - 10 : width - circleWidth
+						break
+					case "right":
+						newX = newX + circleWidth < width ? newX + 10 : 0
+						break
+					default:
+						break
+				}
+
+				return { x: newX, y: newY }
+			}
+			setCircle(prevPosition => moveCircle(prevPosition))
+		},
+		[circle1, circle2, circle3],
+	)
+	const startAction = useCallback(
+		(
+			direction: Direction,
+			circle: Circles,
+			actionIntervalRef: MutableRefObject<NodeJS.Timeout | null>,
+		) => {
+			if (!actionIntervalRef.current) {
+				actionIntervalRef.current = setInterval(() => {
+					console.log("running")
+					handleActions(direction, circle)
+				}, 100) // Adjust the interval as needed
+				console.log("starting")
+				console.log(actionIntervalRef.current)
+			}
+		},
+		[handleActions],
+	)
+	const stopAction = (actionIntervalRef: {
+		current: NodeJS.Timeout | null
+	}) => {
+		if (actionIntervalRef.current) {
+			setActiveButton("")
+			clearInterval(actionIntervalRef.current)
+			actionIntervalRef.current = null
+		}
 	}
+	useEffect(() => {
+		const randomX = Math.abs(Math.floor(Math.random() * 78 - 15) + 1) // Generates a number between 1 and 78
+		const randomY = Math.floor(Math.random() * 18 - 15) + 1 // Generates a number between 1 and 18
+		// setTarget({ x: randomX, y: randomY })
+		const handleKeyDown = (e: { key: string }) => {
+			const directionKeyMap: { [key: string]: Direction } = {
+				w: "up",
+				ArrowUp: "up",
+				s: "down",
+				ArrowDown: "down",
+				a: "left",
+				ArrowLeft: "left",
+				d: "right",
+				ArrowRight: "right",
+			}
+
+			const direction = directionKeyMap[e.key]
+			if (direction) {
+				setActiveButton(direction)
+				handleActions(direction, "circle1")
+			}
+		}
+
+		const handleKeyUp = () => {
+			setActiveButton("")
+		}
+
+		window.addEventListener("keydown", e => handleKeyDown(e))
+		window.addEventListener("keyup", handleKeyUp)
+
+		return () => {
+			window.removeEventListener("keydown", handleKeyDown)
+			window.removeEventListener("keyup", handleKeyUp)
+		}
+	}, [])
+
+	useEffect(() => {
+		const store = Store.getState()
+		if (isCircleInTarget(store.Target1)) {
+			if (getDirection(store.Target1)) {
+				if (getDirection(store.Target1) === "up") {
+					startAction("up", "circle2", upTargetIntervalRef)
+				}
+				if (getDirection(store.Target1) === "down") {
+					startAction("down", "circle2", downTargetIntervalRef)
+				}
+				if (getDirection(store.Target1) === "left") {
+					startAction("left", "circle2", leftTargetIntervalRef)
+				}
+				if (getDirection(store.Target1) === "right") {
+					startAction("right", "circle2", rightTargetIntervalRef)
+				}
+			} else {
+				stopAction(upTargetIntervalRef)
+				stopAction(downTargetIntervalRef)
+				stopAction(leftTargetIntervalRef)
+				stopAction(rightTargetIntervalRef)
+			}
+		}
+	}, [getDirection, startAction])
+
+	useEffect(() => {
+		const store = Store.getState()
+		if (isCircleInTarget(store.Target2)) {
+			console.log("circle2 in target", getDirection(store.Target2))
+			if (getDirection(store.Target2)) {
+				if (getDirection(store.Target2) === "up") {
+					startAction("up", "circle3", upTarget2IntervalRef)
+				}
+				if (getDirection(store.Target2) === "down") {
+					startAction("down", "circle3", downTarget2IntervalRef)
+				}
+				if (getDirection(store.Target2) === "left") {
+					startAction("left", "circle3", leftTarget2IntervalRef)
+				}
+				if (getDirection(store.Target2) === "right") {
+					startAction("right", "circle3", rightTarget2IntervalRef)
+				}
+			} else {
+				stopAction(upTarget2IntervalRef)
+				stopAction(downTarget2IntervalRef)
+				stopAction(leftTarget2IntervalRef)
+				stopAction(rightTarget2IntervalRef)
+			}
+		}
+	}, [getDirection, startAction])
+
+	const isCircleInTarget = (target: Target) => {
+		const { x, y, width, height } = target.value
+		const {
+			x: circleX,
+			y: circleY,
+			width: circleW,
+			height: circleH,
+		} = target.circle
+		if (!x || !y || !width || !height || !circleX || !circleY) return false
+		return (
+			circleX >= x &&
+			circleX + circleW <= x + width &&
+			circleY >= y &&
+			circleY + circleH <= y + height
+		)
+	}
+
 	return (
-		<main className="flex min-h-screen flex-col items-center justify-center m-auto">
-			<div className="game">
-				<div className="game-board flex items-center flex-col gap-4	">
-					<Board
-						target={target3}
-						activeButton={activeButton}
-						handleActions={handleActions}
-						setActiveButton={setActiveButton}
-						circle={circle3}
-						circleToMove={null}
-						id="Target3"
-					/>
-					<Board
-						target={target2}
-						activeButton={activeButton}
-						handleActions={handleActions}
-						setActiveButton={setActiveButton}
-						circle={circle2}
-						circleToMove="circle3"
-						id="Target2"
-					/>
-					<Board
-						target={target}
-						activeButton={activeButton}
-						handleActions={handleActions}
-						setActiveButton={setActiveButton}
-						circle={circle1}
-						circleToMove="circle2"
-						id="Target1"
-					/>
-
-					<ButtonContainer
-						activeButton={activeButton}
-						handleActions={handleActions}
-						setActiveButton={setActiveButton}
-						circleToMove="circle1"
-						id="Target"
-					/>
-
-					<div className="controller">
-						<button>Start</button>
-						<button>Pause</button>
-						<button>Reset</button>
-					</div>
-				</div>
-				<div className="game-info">
-					<div></div>
-					<ol></ol>
-				</div>
+		<main className="flex min-h-screen flex-col items-center justify-center w-full">
+			<div className="gameArea  w-full h-full grid grid-rows-layout justify-items-center gap-4">
+				<Board
+					target={target3}
+					activeButton={activeButton}
+					handleActions={handleActions}
+					setActiveButton={setActiveButton}
+					circle={circle3}
+					circleToMove={null}
+					id="Target3"
+				/>
+				<Board
+					target={target2}
+					activeButton={activeButton}
+					handleActions={handleActions}
+					setActiveButton={setActiveButton}
+					circle={circle2}
+					circleToMove="circle3"
+					id="Target2"
+				/>
+				<Board
+					target={target1}
+					activeButton={activeButton}
+					handleActions={handleActions}
+					setActiveButton={setActiveButton}
+					circle={circle1}
+					circleToMove="circle2"
+					id="Target1"
+				/>
+				<Board
+					activeButton={activeButton}
+					handleActions={handleActions}
+					setActiveButton={setActiveButton}
+					circleToMove="circle1"
+					id="Target"
+				/>
+			</div>
+			<div className="controller">
+				<button>Start</button>
+				<button>Pause</button>
+				<button>Reset</button>
+			</div>
+			<div className="game-info">
+				<div></div>
+				<ol></ol>
 			</div>
 		</main>
 	)
@@ -320,16 +343,30 @@ function Board({
 	circleToMove,
 	id,
 }: {
-	target: { x: number; y: number }
+	target?: { x: number; y: number }
 	activeButton: string
 	handleActions: (direction: Direction, circle: Circles) => void
 	setActiveButton: Dispatch<SetStateAction<string>>
-	circle: { x: number; y: number }
+	circle?: { x: number; y: number }
 	circleToMove: Circles | null
 	id: Targets
 }) {
+	const BoardRef = useRef<HTMLDivElement | null>(null)
+	const action = useStoreActions(actions => actions.setBoardDimentions)
+	useEffect(() => {
+		if (BoardRef.current) {
+			const { x, y, width, height } = BoardRef.current.getBoundingClientRect()
+			action({ dimentions: { x, y, width, height }, target: id })
+		}
+	}, [])
 	return (
-		<div className="grid grid-cols-80 grid-rows-20  bg-slate-300 rounded-lg ">
+		<div
+			ref={BoardRef}
+			className={
+				"w-4/5 rounded-lg relative " +
+				`${circle ? "h-56 bg-slate-300" : "h-full flex justify-center"}`
+			}
+		>
 			<ButtonContainer
 				target={target}
 				activeButton={activeButton}
@@ -338,8 +375,7 @@ function Board({
 				circleToMove={circleToMove}
 				id={id}
 			/>
-
-			<Circle circle={circle} id={id} />
+			{circle && <Circle circle={circle} id={id} />}
 		</div>
 	)
 }
@@ -356,18 +392,22 @@ function Circle({
 	useEffect(() => {
 		if (circleRef.current) {
 			const { x, y, width, height } = circleRef.current.getBoundingClientRect()
-			action({ circle: { x, y, width, height }, target: id })
+			// offset
+			const topOffset = circleRef.current.offsetTop
+			const leftOffset = circleRef.current.offsetLeft
+			action({
+				circle: { x, y, width, height },
+				target: id,
+			})
 		}
 	}, [action, circle, id])
 	return (
 		<div
 			ref={circleRef}
 			key={1}
-			className="canvas bg-red-400 h-[25px] w-[25px] rounded-full transition-transform duration-300 ease-in-out transform "
+			className="absolute top-0 left-0 canvas bg-red-400 h-[24px] w-[24px] rounded-full transition-transform duration-300 ease-in-out transform "
 			style={{
-				gridArea: `${circle.y} / ${circle.x} / ${circle.y + 1} / ${
-					circle.x + 1
-				}`,
+				transform: `translate(${circle.x}px, ${circle.y}px)`,
 			}}
 		></div>
 	)
@@ -408,15 +448,15 @@ function ButtonContainer({
 			})
 		}
 	}, [])
+	const translateX = target?.x || 0
+	const translateY = target?.y || 0
 	return (
 		<div
 			key={0}
 			ref={buttonContainerRef}
 			className="canvas bg-blue-200 h-[150px] w-[150px] rounded-lg transition-transform duration-300 ease-in-out transform flex items-center justify-center"
 			style={{
-				gridArea: target
-					? `${target.y} / ${target.x} / ${target.y + 1} / ${target.x + 1}`
-					: "",
+				transform: `translate(${translateX}px, ${translateY}px)`,
 			}}
 		>
 			{circleToMove && (

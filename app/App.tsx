@@ -116,61 +116,48 @@ export default function App() {
 		},
 		[circle1, circle2, circle3, target1, target2, target3],
 	)
-	const handleActions = useCallback(
-		(direction: Direction, circle: Circles) => {
-			const store = Store.getState()
+	const handleActions = useCallback((direction: Direction, circle: Circles) => {
+		const store = Store.getState()
 
-			const setCircle = {
-				circle1: setCircle1,
-				circle2: setCircle2,
-				circle3: setCircle3,
-			}[circle]
-			const Circle = {
-				circle1: circle1,
-				circle2: circle2,
-				circle3: circle3,
-			}[circle]
-			const target = {
-				circle1: "Target1",
-				circle2: "Target2",
-				circle3: "Target3",
-			}[circle]
+		const setCircle = {
+			circle1: setCircle1,
+			circle2: setCircle2,
+			circle3: setCircle3,
+		}[circle]
 
-			const moveCircle = (prevPosition: { x: number; y: number }) => {
-				const { x, y, height, width } =
-					store[target as keyof typeof store].boardDimentions
-				const {
-					height: circleHeight,
-					width: circleWidth,
-					x: cx,
-					y: cy,
-				} = store[target as keyof typeof store].circle
-				let newX = prevPosition.x
-				let newY = prevPosition.y
+		const target = {
+			circle1: "Target1",
+			circle2: "Target2",
+			circle3: "Target3",
+		}[circle]
+		const targetStore = store[target as keyof typeof store]
+		const moveCircle = (prevPosition: { x: number; y: number }) => {
+			const { height, width } = targetStore.boardDimentions
+			const { height: circleHeight, width: circleWidth } = targetStore.circle
+			let newX = prevPosition.x
+			let newY = prevPosition.y
 
-				switch (direction) {
-					case "up":
-						newY = newY > 10 ? newY - 10 : height - circleHeight
-						break
-					case "down":
-						newY = newY + circleHeight < height ? newY + 10 : 0
-						break
-					case "left":
-						newX = newX > 10 ? newX - 10 : width - circleWidth
-						break
-					case "right":
-						newX = newX + circleWidth < width ? newX + 10 : 0
-						break
-					default:
-						break
-				}
-
-				return { x: newX, y: newY }
+			switch (direction) {
+				case "up":
+					newY = newY > 10 ? newY - 10 : height - circleHeight
+					break
+				case "down":
+					newY = newY + circleHeight < height ? newY + 10 : 0
+					break
+				case "left":
+					newX = newX > 10 ? newX - 10 : width - circleWidth
+					break
+				case "right":
+					newX = newX + circleWidth < width ? newX + 10 : 0
+					break
+				default:
+					break
 			}
-			setCircle(prevPosition => moveCircle(prevPosition))
-		},
-		[circle1, circle2, circle3],
-	)
+
+			return { x: newX, y: newY }
+		}
+		setCircle(prevPosition => moveCircle(prevPosition))
+	}, [])
 	const startAction = useCallback(
 		(
 			direction: Direction,
@@ -254,7 +241,7 @@ export default function App() {
 			setActiveButton("")
 		}
 
-		window.addEventListener("keydown", e => handleKeyDown(e))
+		window.addEventListener("keydown", handleKeyDown)
 		window.addEventListener("keyup", handleKeyUp)
 
 		return () => {

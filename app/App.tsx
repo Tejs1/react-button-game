@@ -31,18 +31,31 @@ import {
 	ChevronDownIcon,
 } from "@radix-ui/react-icons"
 import { Button } from "@/components/ui/button"
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 const directions = ["up", "left", "down", "right"] as const
 type Circles = "circle1" | "circle2" | "circle3"
 type Direction = (typeof directions)[number]
 
 export default function App() {
 	const [activeButton, setActiveButton] = useState("")
+	const [active, setActive] = useState(false)
 	const [circle1, setCircle1] = useState({ x: 0, y: 0 })
 	const [circle2, setCircle2] = useState({ x: 0, y: 0 })
 	const [circle3, setCircle3] = useState({ x: 0, y: 0 })
-	const [target1, setTarget1] = useState({ x: 100, y: 10 })
-	const [target2, setTarget2] = useState({ x: 30, y: 4 })
-	const [target3, setTarget3] = useState({ x: 50, y: 2 })
+	const [target1, setTarget1] = useState({ x: 0, y: 0 })
+	const [target2, setTarget2] = useState({ x: 0, y: 0 })
+	const [target3, setTarget3] = useState({ x: 50, y: 0 })
 	const upTargetIntervalRef = useRef<NodeJS.Timeout | null>(null)
 	const downTargetIntervalRef = useRef<NodeJS.Timeout | null>(null)
 	const leftTargetIntervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -52,6 +65,53 @@ export default function App() {
 	const leftTarget2IntervalRef = useRef<NodeJS.Timeout | null>(null)
 	const rightTarget2IntervalRef = useRef<NodeJS.Timeout | null>(null)
 	// const store = Store.getState()
+	function generateCoordinates(circle: Circles) {
+		const store = Store.getState()
+
+		const setCircle = {
+			circle1: setCircle1,
+			circle2: setCircle2,
+			circle3: setCircle3,
+		}[circle]
+
+		const setTarget = {
+			circle1: setTarget1,
+			circle2: setTarget2,
+			circle3: setTarget3,
+		}[circle]
+
+		const target = {
+			circle1: "Target1",
+			circle2: "Target2",
+			circle3: "Target3",
+		}[circle]
+
+		const targetStore = store[target as keyof typeof store]
+
+		const { height, width } = targetStore.boardDimentions
+		const { height: circleHeight, width: circleWidth } = targetStore.circle
+		const { height: targetHeight, width: targetWidth } = targetStore.value
+
+		// Generate random coordinates for circle within the board
+		const circleX = Math.random() * (width - circleWidth)
+		const circleY = Math.random() * (height - circleHeight)
+
+		let targetX, targetY
+		const minSeparation = 60
+		// Ensure the target does not overlap or get too close to the circle
+		do {
+			targetX = Math.random() * (width - targetWidth)
+			targetY = Math.random() * (height - targetHeight)
+		} while (
+			circleX < targetX + targetWidth + minSeparation &&
+			circleX + circleWidth + minSeparation > targetX &&
+			circleY < targetY + targetHeight + minSeparation &&
+			circleY + circleHeight + minSeparation > targetY
+		)
+
+		setCircle({ x: circleX, y: circleY })
+		setTarget({ x: targetX, y: targetY })
+	}
 
 	const getDirection = useCallback(
 		(containerName: Targets) => {
@@ -75,10 +135,6 @@ export default function App() {
 				Target3: target3,
 				Target: target1,
 			}[containerName]
-
-			console.log(circleX, circleY, circleW, circleH)
-			console.log(upX, upY, upW, upH)
-			console.log(Container.x, Container.y)
 
 			if (
 				circleX >= upX + Container.x &&
@@ -168,9 +224,7 @@ export default function App() {
 				actionIntervalRef.current = setInterval(() => {
 					console.log("running")
 					handleActions(direction, circle)
-				}, 100) // Adjust the interval as needed
-				console.log("starting")
-				console.log(actionIntervalRef.current)
+				}, 250)
 			}
 		},
 		[handleActions],
@@ -215,10 +269,11 @@ export default function App() {
 	)
 
 	useEffect(() => {
-		const randomX = Math.abs(Math.floor(Math.random() * 78 - 15) + 1) // Generates a number between 1 and 78
-		const randomY = Math.floor(Math.random() * 18 - 15) + 1 // Generates a number between 1 and 18
-		// setTarget({ x: randomX, y: randomY })
-		const handleKeyDown = (e: { key: string }) => {
+		generateCoordinates("circle1")
+		generateCoordinates("circle2")
+		generateCoordinates("circle3")
+
+		const handleKeyDown = (e: KeyboardEvent) => {
 			const directionKeyMap: { [key: string]: Direction } = {
 				w: "up",
 				ArrowUp: "up",
@@ -229,7 +284,9 @@ export default function App() {
 				d: "right",
 				ArrowRight: "right",
 			}
-
+			if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+				e.preventDefault()
+			}
 			const direction = directionKeyMap[e.key]
 			if (direction) {
 				setActiveButton(direction)
@@ -294,8 +351,41 @@ export default function App() {
 		}
 	}, [getDirection, startAction, circle2, isCircleInTarget])
 
+	useEffect(() => {
+		if (isCircleInTarget("Target3")) {
+			setActive(true)
+			stopAction(upTargetIntervalRef)
+			stopAction(downTargetIntervalRef)
+			stopAction(leftTargetIntervalRef)
+			stopAction(rightTargetIntervalRef)
+			stopAction(upTarget2IntervalRef)
+			stopAction(downTarget2IntervalRef)
+			stopAction(leftTarget2IntervalRef)
+			stopAction(rightTarget2IntervalRef)
+		}
+	}, [circle3, isCircleInTarget])
+
+	const handleReset = () => {
+		generateCoordinates("circle1")
+		generateCoordinates("circle2")
+		generateCoordinates("circle3")
+		setActive(false)
+	}
+
 	return (
 		<main className="flex min-h-screen flex-col items-center justify-center w-full">
+			<AlertDialog open={active} onOpenChange={handleReset}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							Congratulations !!! You have succeeded.
+						</AlertDialogTitle>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogAction>Continue</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 			<div className="gameArea  w-full h-full grid grid-rows-layout justify-items-center gap-4">
 				<Board
 					target={target3}
@@ -325,6 +415,7 @@ export default function App() {
 					id="Target1"
 				/>
 				<Board
+					target={null}
 					activeButton={activeButton}
 					handleActions={handleActions}
 					setActiveButton={setActiveButton}
@@ -354,7 +445,7 @@ function Board({
 	circleToMove,
 	id,
 }: {
-	target?: { x: number; y: number }
+	target: { x: number; y: number } | null
 	activeButton: string
 	handleActions: (direction: Direction, circle: Circles) => void
 	setActiveButton: Dispatch<SetStateAction<string>>
@@ -433,7 +524,7 @@ function ButtonContainer({
 	circleToMove,
 	id,
 }: {
-	target?: { x: number; y: number }
+	target: { x: number; y: number } | null
 	activeButton: string
 	handleActions: (direction: Direction, circle: Circles) => void
 	setActiveButton: Dispatch<SetStateAction<string>>
@@ -468,7 +559,7 @@ function ButtonContainer({
 		<div
 			key={0}
 			ref={buttonContainerRef}
-			className="canvas bg-blue-200 h-[150px] w-[150px] rounded-lg transition-transform duration-300 ease-in-out transform flex items-center justify-center"
+			className={`${(target && circleToMove) || "bg-blue-200 border border-2"} h-[150px] w-[150px] rounded-lg transition-transform duration-300 ease-in-out transform flex items-center justify-center`}
 			style={{
 				transform: `translate(${translateX}px, ${translateY}px)`,
 			}}
@@ -542,22 +633,22 @@ function ButtonIcon({
 		}
 	}, [action, direction, id, setActiveButton])
 
-	const startAction = () => {
+	const startAction = useCallback(() => {
 		handleActions(direction, circle)
 		if (!actionIntervalRef.current) {
 			actionIntervalRef.current = setInterval(() => {
 				handleActions(direction, circle)
-			}, 100) // Adjust the interval as needed
+			}, 250)
 		}
-	}
+	}, [])
 
-	const stopAction = () => {
+	const stopAction = useCallback(() => {
 		if (actionIntervalRef.current) {
 			setActiveButton("")
 			clearInterval(actionIntervalRef.current)
 			actionIntervalRef.current = null
 		}
-	}
+	}, [])
 	let Icon = ChevronRightIcon
 	let position = ""
 	switch (direction) {
